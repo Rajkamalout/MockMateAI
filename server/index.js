@@ -13,45 +13,42 @@ dotenv.config()
 
 const app = express()
 
-// ✅ CORS FIX (BEST PRACTICE)
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://mockmateai-k6ph.onrender.com"
-]
-
-app.use(cors({
+// ✅ STEP 1: CORS OPTIONS (TOP pe banao)
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow no-origin requests (postman / mobile / google popup)
-    if (!origin) return callback(null, true)
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://mockmateai-k6ph.onrender.com"
+    ];
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      return callback(new Error("CORS not allowed"))
+      callback(new Error("CORS not allowed"));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
-}))
+};
 
-// ✅ IMPORTANT: Preflight handle karo
-app.options("*", cors())
+// ✅ STEP 2: CORS APPLY (ROUTES se PEHLE)
+app.use(cors(corsOptions))
 
-// ✅ Google popup issue fix
-app.use((req, res, next) => {
-  res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
-  next()
-})
+// ✅ STEP 3: PREFLIGHT HANDLE (ROUTES se PEHLE)
+app.options("*", cors(corsOptions))
 
+// ✅ STEP 4: OTHER MIDDLEWARES
 app.use(express.json())
 app.use(cookieParser())
 
+// ✅ STEP 5: ROUTES (CORS ke BAAD)
 app.use("/api/auth", authRouter)
 app.use("/api/user", userRouter)
 app.use("/api/interview", interviewRouter)
 app.use("/api/payment", paymentRouter)
 
+// ✅ SERVER START
 const PORT = process.env.PORT || 6000
 
 app.listen(PORT, () => {
