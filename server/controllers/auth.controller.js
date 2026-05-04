@@ -1,41 +1,46 @@
-import genToken from "../config/token.js"
-import User from "../models/user.model.js"
+import admin from "../config/firebaseAdmin.js";
+import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
+const createToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "7d"
+  });
+};
 
-export const googleAuth = async (req,res) => {
-    try {
-        const {name , email} = req.body
-        let user = await User.findOne({email})
-        if(!user){
-            user = await User.create({
-                name , 
-                email
-            })
-        }
-        let token = await genToken(user._id)
-        res.cookie("token" , token , {
-            http:true,
-            secure:true,
-            sameSite:"none",
-            maxAge:14 * 24 * 60 * 60 * 1000
-        })
+export const googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
 
-        return res.status(200).json(user)
+    // 🔥 verify firebase token
+    const decoded = await admin.auth().verifyIdToken(token);
 
+    const { name, email, picture } = decoded;
 
+    let user = await User.findOne({ email });
 
-    } catch (error) {
-        return res.status(500).json({message:`Google auth error ${error}`})
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        photo: picture
+      });
     }
-    
-}
 
-export const logOut = async (req,res) => {
-    try {
-        await res.clearCookie("token")
-        return res.status(200).json({message:"LogOut Successfully"})
-    } catch (error) {
-         return res.status(500).json({message:`Logout error ${error}`})
-    }
-    
-}
+    const jwtToken = createToken(user._id);
+
+    // 🔥 COOKIE SET
+    res.cookie("token", jwtToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json(user);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Google Auth Failed" });
+  }
+};
