@@ -16,10 +16,11 @@ const app = express()
 // ✅ STEP 1: CORS OPTIONS (TOP pe banao)
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:5173",
-      "https://mockmateai-k6ph.onrender.com"
-    ];
+   const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mockmateai-k6ph.onrender.com",
+  "https://mockmateai-k6ph.onrender.com/"
+];
 
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
