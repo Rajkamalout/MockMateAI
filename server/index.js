@@ -32,19 +32,14 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
-// ✅ STEP 2: CORS APPLY (ROUTES se PEHLE)
-app.use(cors(corsOptions))
+app.use(express.json());
 
-// ✅ STEP 3: PREFLIGHT HANDLE (ROUTES se PEHLE)
-app.options("*", cors(corsOptions))
-
-// ✅ STEP 4: OTHER MIDDLEWARES
-app.use(express.json())
-app.use(cookieParser())
-
-// ✅ STEP 5: ROUTES (CORS ke BAAD)
-app.use("/api/auth", authRouter)
+app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter)
 app.use("/api/interview", interviewRouter)
 app.use("/api/payment", paymentRouter)
